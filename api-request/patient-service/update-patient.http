@@ -1,0 +1,12 @@
+### Update patient
+PUT http://localhost:4000/api/v1/patients/223e4567-e89b-12d3-a456-426614174014
+Content-Type: application/json
+
+
+{
+  "name": "Isabella Darwin",
+  "email": "isabella.walker@example.net",
+  "address": "789 Willow St, Springfield",
+  "dateOfBirth": "1987-10-17"
+}
+###

@@ -4,6 +4,7 @@ import com.abdellahbounab.patientservice.dto.PatientRequestDTO;
 import com.abdellahbounab.patientservice.dto.PatientResponseDTO;
 import com.abdellahbounab.patientservice.exception.EmailAlreadyExistsException;
 import com.abdellahbounab.patientservice.exception.PatientNotExistsException;
+import com.abdellahbounab.patientservice.grpc.BillingServiceGrpcClient;
 import com.abdellahbounab.patientservice.mapper.PatientMapper;
 import com.abdellahbounab.patientservice.model.Patient;
 import com.abdellahbounab.patientservice.repository.PatientRepository;
@@ -16,17 +17,17 @@ import java.util.stream.Collectors;
 
 @Service
 public class PatientService {
-    private PatientRepository patientRepository;
+    private final PatientRepository patientRepository;
+    private final BillingServiceGrpcClient billingServiceGrpcClient;
 
-    public PatientService(PatientRepository patientRepository) {
+    public PatientService(PatientRepository patientRepository, BillingServiceGrpcClient billingServiceGrpcClient) {
         this.patientRepository = patientRepository;
+        this.billingServiceGrpcClient = billingServiceGrpcClient;
     }
 
     public List<PatientResponseDTO> getPatients() {
         List<Patient> patients = patientRepository.findAll();
-        return patients.stream()
-                .map(PatientMapper::toPatientDTO)
-                .collect(Collectors.toList());
+        return patients.stream().map(PatientMapper::toPatientDTO).collect(Collectors.toList());
     }
 
     public PatientResponseDTO createPatient(PatientRequestDTO patientRequestDTO) {
@@ -34,17 +35,16 @@ public class PatientService {
             throw new EmailAlreadyExistsException("this email already exists: " + patientRequestDTO.getEmail());
         }
         // Convert DTO to model
-        Patient patient = PatientMapper.toPatientModel(patientRequestDTO);
         // Save patient
-        Patient savedPatient = patientRepository.save(patient);
+        Patient savedPatient = patientRepository.save(PatientMapper.toPatientModel(patientRequestDTO));
+
+        billingServiceGrpcClient.createBillingAccount(savedPatient.getId().toString(), savedPatient.getName(), savedPatient.getEmail());
         // Convert model to ResponseDTO , return it to controller
         return PatientMapper.toPatientDTO(savedPatient);
     }
 
-    public PatientResponseDTO updatePatient(UUID id,
-                                            PatientRequestDTO patientRequestDTO) {
-        Patient patient = patientRepository.findById(id)
-                    .orElseThrow(()-> new PatientNotExistsException("Patient doesnt exists"));
+    public PatientResponseDTO updatePatient(UUID id, PatientRequestDTO patientRequestDTO) {
+        Patient patient = patientRepository.findById(id).orElseThrow(() -> new PatientNotExistsException("Patient doesnt exists"));
 
 
         patient.setName(patientRequestDTO.getName());
@@ -54,11 +54,11 @@ public class PatientService {
         patient.setAddress(patientRequestDTO.getAddress());
         patient.setDataOfBirth(LocalDate.parse(patientRequestDTO.getDateOfBirth()));
 
-         Patient updatedPatient = patientRepository.save(patient);
+        Patient updatedPatient = patientRepository.save(patient);
         return PatientMapper.toPatientDTO(updatedPatient);
     }
 
-    public void deletePatient(UUID id){
+    public void deletePatient(UUID id) {
         patientRepository.deleteById(id);
     }
 }

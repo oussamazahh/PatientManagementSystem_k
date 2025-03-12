@@ -5,6 +5,7 @@ import com.abdellahbounab.patientservice.dto.PatientResponseDTO;
 import com.abdellahbounab.patientservice.exception.EmailAlreadyExistsException;
 import com.abdellahbounab.patientservice.exception.PatientNotExistsException;
 import com.abdellahbounab.patientservice.grpc.BillingServiceGrpcClient;
+import com.abdellahbounab.patientservice.kafka.KafkaProducer;
 import com.abdellahbounab.patientservice.mapper.PatientMapper;
 import com.abdellahbounab.patientservice.model.Patient;
 import com.abdellahbounab.patientservice.repository.PatientRepository;
@@ -19,10 +20,14 @@ import java.util.stream.Collectors;
 public class PatientService {
     private final PatientRepository patientRepository;
     private final BillingServiceGrpcClient billingServiceGrpcClient;
+    private final KafkaProducer kafkaProducer;
 
-    public PatientService(PatientRepository patientRepository, BillingServiceGrpcClient billingServiceGrpcClient) {
+    public PatientService(PatientRepository patientRepository,
+                          BillingServiceGrpcClient billingServiceGrpcClient,
+                          KafkaProducer kafkaProducer) {
         this.patientRepository = patientRepository;
         this.billingServiceGrpcClient = billingServiceGrpcClient;
+        this.kafkaProducer = kafkaProducer;
     }
 
     public List<PatientResponseDTO> getPatients() {
@@ -38,7 +43,10 @@ public class PatientService {
         // Save patient
         Patient savedPatient = patientRepository.save(PatientMapper.toPatientModel(patientRequestDTO));
 
+        //sending to the billing service
         billingServiceGrpcClient.createBillingAccount(savedPatient.getId().toString(), savedPatient.getName(), savedPatient.getEmail());
+        //sending the event to kafka
+        kafkaProducer.sendEvent(savedPatient);
         // Convert model to ResponseDTO , return it to controller
         return PatientMapper.toPatientDTO(savedPatient);
     }

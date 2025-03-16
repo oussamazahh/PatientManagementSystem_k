@@ -4,12 +4,22 @@ spring:
   cloud:
     gateway:
       routes:
-        - id: patient-service-ruote
+        # auth service
+        - id: auth-service-route
+          uri: http://auth-service:4005
+          predicates:
+            - Path=/auth/**
+          filters:
+            - StripPrefix=1
+          #patient service
+        - id: patient-service-route
           uri: http://patient-service:4000
           predicates:
             - Path=/api/patients/**
           filters:
             - RewritePath=/api/patients,/api/v1/patients
+            - JwtValidation #would check the JwtValidation class as a Filter Gateway factory  class
+          #documentation service
         - id: api-docs-patient-route
           uri: http://patient-service:4000
           predicates:

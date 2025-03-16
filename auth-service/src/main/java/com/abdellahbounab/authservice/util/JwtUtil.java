@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.time.Duration;
@@ -38,5 +39,11 @@ public class JwtUtil {
                 .expiration(Date.from(expiration.atZone(ZoneId.systemDefault()).toInstant()))
                 .signWith(secretKey)
                 .compact();
+    }
+
+    public void validateToken(String token) {
+        Jwts.parser().verifyWith((SecretKey) secretKey)
+                .build()
+                .parseSignedClaims(token);
     }
 }

@@ -12,7 +12,7 @@ This project is a **microservices-based patient management system** built using 
 - **Analytics & Notification Services** (Kafka Consumers)
 - **Auth Service** (Spring Security + JWT + PostgreSQL)
 - **API Gateway** (Spring Cloud Gateway - Reactive)
-- **Kafka + Zookeeper** (Event-driven messaging backbone)
+- **Kafka** (Event-driven messaging backbone)
 - **PostgreSQL Database** (Persistent storage)
 
 ---
@@ -21,35 +21,21 @@ This project is a **microservices-based patient management system** built using 
 
 ### **1. Clone the Repository**
 ```sh
-git clone https://github.com/your-repo/microservices-project.git
+git@github.com:Abdellahbounab/PatientManagementSystem.git
 cd microservices-project
 ```
 
 ### **2. Set Up Environment Variables**
 Create a **.env** file in the root directory and add the following:
 ```ini
+# Auth Service Configuration
+JWT_SECRET=g1brIEgHUckFn02lhSOxQ6wQWvEc9hLn6mmQFb5D7pRAQnj5xrhyyxtKvyjxiDyLbsHirmcPRtEjiZRxYkLpSmt0Sa0GYVML/MPbgRRQ3pE=
+
+
 # Database Configuration
 POSTGRES_USER=admin
-POSTGRES_PASSWORD=securepassword
-POSTGRES_DB=patient_db
-POSTGRES_PORT=5432
-POSTGRES_HOST=postgres
-
-# Auth Service Configuration
-JWT_SECRET=your_jwt_secret
-JWT_EXPIRATION=3600000
-
-# Kafka Configuration
-KAFKA_BROKER=kafka:9092
-KAFKA_TOPIC_PATIENT=patient-topic
-KAFKA_TOPIC_BILLING=billing-topic
-
-# gRPC Configuration
-GRPC_BILLING_HOST=billing-service
-GRPC_BILLING_PORT=9090
-
-# API Gateway Configuration
-GATEWAY_PORT=8080
+POSTGRES_PASSWORD=admin
+POSTGRES_DB=patientdb
 ```
 
 ### **3. Build and Run the Services with Docker**

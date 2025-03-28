@@ -1,6 +1,7 @@
 services:
   auth-service-db:
     image: postgres:latest
+    container_name: auth-service-db
     environment:
       POSTGRES_DB: authdb
       POSTGRES_USER: admin
@@ -10,11 +11,12 @@ services:
     networks:
       - internal
     volumes:
-      - C:\Users\Abdellah Bounab\db_volumes\auth-service-db:/var/lib/postgresql/data
+      - ~/Desktop/db_volumes/auth-service-db:/var/lib/postgresql/data
 
 
   patient-service-db:
     image: postgres:latest
+    container_name: patient-service-db
     environment:
       POSTGRES_DB: patientdb
       POSTGRES_USER: admin
@@ -24,13 +26,14 @@ services:
     networks:
       - internal
     volumes:
-      - C:\Users\Abdellah Bounab\db_volumes\patient-service-db:/var/lib/postgresql/data
+      - ~/Desktop/db_volumes/patient-service-db:/var/lib/postgresql/data
 
   patient-service:
     image: patient-service:latest
+    container_name: patient-service
     build:
-      context: .
-      dockerfile: patient-service/Dockerfile
+      context: ./patient-service
+      dockerfile: Dockerfile
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - BILLING_SERVICE_ADDRESS=billing-service
@@ -49,9 +52,10 @@ services:
 
   auth-service:
     image: auth-service:latest
+    container_name: auth-service
     build:
-      context: .
-      dockerfile: auth-service/Dockerfile
+      context: ./auth-service
+      dockerfile: Dockerfile
     environment:
       - JWT_SECRET=g1brIEgHUckFn02lhSOxQ6wQWvEc9hLn6mmQFb5D7pRAQnj5xrhyyxtKvyjxiDyLbsHirmcPRtEjiZRxYkLpSmt0Sa0GYVML/MPbgRRQ3pE=
       - SPRING_DATASOURCE_PASSWORD=admin
@@ -64,9 +68,10 @@ services:
 
   api-gateway:
     image: api-gateway:latest
+    container_name: api-gateway
     build:
-      context: .
-      dockerfile: api-gateway/Dockerfile
+      context: ./api-gateway
+      dockerfile: Dockerfile
     ports:
       - "4004:4004"
     environment:
@@ -80,9 +85,10 @@ services:
 
   billing-service:
     image: billing-service:latest
+    container_name: billing-service
     build:
-      context: .
-      dockerfile: billing-service/Dockerfile
+      context: ./billing-service
+      dockerfile: Dockerfile
     ports:
       - "4001:4001"
       - "9001:9001"
@@ -93,6 +99,7 @@ services:
 
   kafka:
     image: bitnami/kafka:latest
+    container_name: kafka
     environment:
       KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
       KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
@@ -109,9 +116,10 @@ services:
 
   analytics-service:
     image: analytics-service:latest
+    container_name: analytics-service
     build:
-      context: .
-      dockerfile: analytics-service/Dockerfile
+      context: ./analytics-service
+      dockerfile: Dockerfile
     ports:
       - "4002:4002"
     environment:

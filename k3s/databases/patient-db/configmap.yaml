@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: patient-service-config
+data:
+  SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
+  SPRING_SQL_INIT_MODE: "always"
+  BILLING_SERVICE_ADDRESS: "billing-service"
+  BILLING_SERVICE_GRPC_PORT: "9001"

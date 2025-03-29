@@ -15,6 +15,7 @@ spec:
       containers:
       - name: patient-service
         image: patient-service:latest
+        imagePullPolicy: Never
         env:
         - name: SPRING_DATASOURCE_URL
           value: jdbc:postgresql://patient-db-service:5432/patientdb

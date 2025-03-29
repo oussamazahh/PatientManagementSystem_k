@@ -15,6 +15,7 @@ spec:
       containers:
       - name: billing-service
         image: billing-service:latest
+        imagePullPolicy: Never
         ports:
         - containerPort: 4001
         - containerPort: 9001

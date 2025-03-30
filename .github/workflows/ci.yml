@@ -41,10 +41,20 @@ jobs:
 
       - name: 🎯 Create k3d cluster
         run: |
-          k3d cluster create mycluster -p "4004:30004@loadbalancer" --wait
+          # Create cluster with explicit config
+          k3d cluster create mycluster \
+            --wait \
+            --kubeconfig-update-default=false \
+            --port "4004:30004@loadbalancer" \
+            --api-port 6443
+          
+          # Get kubeconfig and set permissions
           mkdir -p ${HOME}/.kube
-          sudo cp /etc/rancher/k3s/k3s.yaml ${HOME}/.kube/config
-          sudo chown $USER ${HOME}/.kube/config
+          k3d kubeconfig get mycluster > ${HOME}/.kube/config
+          chmod 600 ${HOME}/.kube/config
+          
+          # Verify access
+          kubectl cluster-info
 
       - name: 🏗 Build Docker images
         run: make build

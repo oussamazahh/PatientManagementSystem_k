@@ -73,9 +73,9 @@ jobs:
         run: |
           echo "Testing API documentation endpoints..."
           # Test auth-service API docs
-          curl  http://localhost:4004/api-docs/auth | grep -q "openapi" || (echo "❌ Auth Service API Docs Check Failed"; exit 1)
+          curl  http://localhost:30004/api-docs/auth | grep -q "openapi" || (echo "❌ Auth Service API Docs Check Failed"; exit 1)
           echo "✅ Auth Service API Docs Verified"
           
           # Test patient-service API docs
-          curl  http://localhost:4004/api-docs/patients | grep -q "openapi" || (echo "❌ Patient Service API Docs Check Failed"; exit 1)
+          curl  http://localhost:30004/api-docs/patients | grep -q "openapi" || (echo "❌ Patient Service API Docs Check Failed"; exit 1)
           echo "✅ Patient Service API Docs Verified"

@@ -15,8 +15,18 @@ jobs:
 
       - name: 🐳 Set up Docker
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq docker.io
+          # Clean up existing packages
+          sudo apt-get autoremove -y
+          sudo apt-get clean
+          
+          # Update package lists without quiet mode to see potential issues
+          sudo apt-get update -o DPkg::options::="--force-confdef" -o DPkg::options::="--force-confold"
+          
+          # Install Docker with conflict resolution
+          sudo apt-get install -y -f docker.io || true
+          sudo apt-get install -y -o DPkg::options::="--force-confdef" -o DPkg::options::="--force-confold" docker.io
+          
+          # Configure Docker
           sudo systemctl start docker
           sudo usermod -aG docker $USER
           newgrp docker

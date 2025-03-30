@@ -1,0 +1,59 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci-cd:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛎 Checkout code
+        uses: actions/checkout@v2
+
+      - name: 🐳 Set up Docker
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq docker.io
+          sudo systemctl start docker
+          sudo usermod -aG docker $USER
+          newgrp docker
+
+      - name: ⚙️ Install k3d and kubectl
+        run: |
+          curl -sL https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+          curl -LOs "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+
+      - name: 🎯 Create k3d cluster
+        run: |
+          k3d cluster create mycluster -p "4004:30004@loadbalancer" --wait
+          mkdir -p ${HOME}/.kube
+          sudo cp /etc/rancher/k3s/k3s.yaml ${HOME}/.kube/config
+          sudo chown $USER ${HOME}/.kube/config
+
+      - name: 🏗 Build Docker images
+        run: make build
+
+      - name: 🚀 Deploy to cluster
+        run: make deploy
+
+      - name: ⏳ Wait for services to be ready
+        run: |
+          kubectl wait --for=condition=available --timeout=300s deployment/auth-service
+          kubectl wait --for=condition=available --timeout=300s deployment/patient-service
+          kubectl wait --for=condition=available --timeout=300s deployment/api-gateway
+          sleep 20  # Additional buffer for ingress controller
+
+      - name: 🧪 Test API endpoints
+        run: |
+          echo "Testing API documentation endpoints..."
+          # Test auth-service API docs
+          curl -s --retry 5 --retry-delay 10 http://localhost:4004/api-docs/auth | grep -q "openapi" || (echo "❌ Auth Service API Docs Check Failed"; exit 1)
+          echo "✅ Auth Service API Docs Verified"
+          
+          # Test patient-service API docs
+          curl -s --retry 5 --retry-delay 10 http://localhost:4004/api-docs/patients | grep -q "openapi" || (echo "❌ Patient Service API Docs Check Failed"; exit 1)
+          echo "✅ Patient Service API Docs Verified"

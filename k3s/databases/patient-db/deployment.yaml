@@ -19,15 +19,9 @@ spec:
         - name: POSTGRES_DB
           value: patientdb
         - name: POSTGRES_USER
-          valueFrom:
-            secretKeyRef:
-              name: patient-db-secret
-              key: username
+          value: admin
         - name: POSTGRES_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: patient-db-secret
-              key: password
+          value: admin
         ports:
         - containerPort: 5432
         volumeMounts:

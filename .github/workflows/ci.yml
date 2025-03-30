@@ -69,7 +69,7 @@ jobs:
           # kubectl wait --for=condition=available --timeout=300s deployment/api-gateway
           sleep 40  # Additional buffer for ingress controller
           sudo make status
-          sleep 10
+          sleep 15
 
       - name: 🧪 Test API endpoints
         run: |

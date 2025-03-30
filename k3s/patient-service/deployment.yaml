@@ -16,7 +16,11 @@ spec:
       - name: patient-service
         image: patient-service:latest
         imagePullPolicy: Never
+        ports:
+        - containerPort: 8080
         env:
+        - name: SERVER_PORT
+          value: "8080"
         - name: SPRING_DATASOURCE_URL
           value: jdbc:postgresql://patient-db-service:5432/patientdb
         - name: SPRING_DATASOURCE_USERNAME
@@ -29,7 +33,27 @@ spec:
             secretKeyRef:
               name: patient-db-secret
               key: password
-        - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
-          value: kafka-service:9092
-        ports:
-        - containerPort: 8080
+        - name: BILLING_SERVICE_ADDRESS  # Add this environment variable
+          value: billing-service
+        - name: BILLING_SERVICE_GRPC_PORT
+          value: "9001"
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 45  # Increased from 20
+          periodSeconds: 10
+          timeoutSeconds: 5
+        livenessProbe:  # Add liveness probe
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 10
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1024Mi"
+            cpu: "500m"

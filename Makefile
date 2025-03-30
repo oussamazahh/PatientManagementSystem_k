@@ -27,7 +27,7 @@ install: ## 🌐 Install k3s cluster and dependencies
 	@curl -sL https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
 	@curl -LOs "https://dl.k8s.io/release/$$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
 	@sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-	@k3d cluster create $(CLUSTER_NAME) -p "8080:80@loadbalancer" --wait
+	@k3d cluster create $(CLUSTER_NAME) -p "4004:30004@loadbalancer" --wait
 	@mkdir -p $$(dirname $(KUBECONFIG)) && sudo cp /etc/rancher/k3s/k3s.yaml $(KUBECONFIG) && sudo chown $$USER $(KUBECONFIG)
 	@echo "\n${GREEN}✅ Cluster ready! Verify with: kubectl cluster-info${NC}"
 
@@ -66,7 +66,7 @@ deploy: ## 🚀 Deploy entire system to Kubernetes
 		echo "${GREEN}🚀 Deploying $$service...${NC}"; \
 		kubectl apply -f $(CONFIG_DIR)/$$service/ || { echo "${RED}❌ Service deployment failed for $$service${NC}"; exit 1; }; \
 	done
-	
+	@kubectl create -f k3s/ingress.yaml	
 	@echo "\n${GREEN}🏁 Deployment completed successfully!${NC}"
 
 clean: ## 🧹 Clean up all cluster resources
@@ -81,6 +81,7 @@ clean: ## 🧹 Clean up all cluster resources
 	done
 	@kubectl delete -f $(CONFIG_DIR)/$(KAFKA)/ --ignore-not-found
 	@kubectl delete secret auth-db-secret patient-db-secret jwt-secret --ignore-not-found
+	@kubectl delete -f k3s/ingress.yaml
 	@echo "\n${GREEN}🗑️  Cluster resources removed!${NC}"
 
 status: ## 📊 Show cluster status

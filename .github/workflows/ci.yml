@@ -40,21 +40,7 @@ jobs:
           sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 
       - name: 🎯 Create k3d cluster
-        run: |
-          # Create cluster with explicit config
-          k3d cluster create mycluster \
-            --wait \
-            --kubeconfig-update-default=false \
-            --port "4004:30004@loadbalancer" \
-            --api-port 6443
-          
-          # Get kubeconfig and set permissions
-          mkdir -p ${HOME}/.kube
-          k3d kubeconfig get mycluster > ${HOME}/.kube/config
-          chmod 600 ${HOME}/.kube/config
-          
-          # Verify access
-          kubectl cluster-info
+        run: sudo make install
 
       - name: 🏗 Build Docker images
         run: make build
@@ -67,7 +53,7 @@ jobs:
           # kubectl wait --for=condition=available --timeout=300s deployment/auth-service
           # kubectl wait --for=condition=available --timeout=300s deployment/patient-service
           # kubectl wait --for=condition=available --timeout=300s deployment/api-gateway
-          sleep 20  # Additional buffer for ingress controller
+          sleep 40  # Additional buffer for ingress controller
 
       - name: 🧪 Test API endpoints
         run: |

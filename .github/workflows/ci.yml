@@ -40,7 +40,21 @@ jobs:
           sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 
       - name: 🎯 Create k3d cluster
-        run: sudo make install
+        run: |
+          # Create cluster with explicit config
+          k3d cluster create mycluster \
+            --wait \
+            --kubeconfig-update-default=false \
+            --port "4004:30004@loadbalancer" \
+            --api-port 6443
+          
+          # Get kubeconfig and set permissions
+          mkdir -p ${HOME}/.kube
+          k3d kubeconfig get mycluster > ${HOME}/.kube/config
+          chmod 600 ${HOME}/.kube/config
+          
+          # Verify access
+          kubectl cluster-info
 
       - name: 🏗 Build Docker images
         run: make build

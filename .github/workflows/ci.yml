@@ -13,21 +13,23 @@ jobs:
       - name: 🛎 Checkout code
         uses: actions/checkout@v2
 
-      - name: 🐳 Set up Docker
+      - name: 🐳 Install Docker
         run: |
-          # Clean up existing packages
-          sudo apt-get autoremove -y
-          sudo apt-get clean
+          # Remove conflicting packages
+          sudo apt-get remove -y containerd docker docker-engine docker.io
           
-          # Update package lists without quiet mode to see potential issues
-          sudo apt-get update -o DPkg::options::="--force-confdef" -o DPkg::options::="--force-confold"
+          # Add Docker's official GPG key
+          sudo mkdir -p /etc/apt/keyrings
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
           
-          # Install Docker with conflict resolution
-          sudo apt-get install -y -f docker.io || true
-          sudo apt-get install -y -o DPkg::options::="--force-confdef" -o DPkg::options::="--force-confold" docker.io
+          # Set up the repository
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
           
-          # Configure Docker
-          sudo systemctl start docker
+          # Update and install
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+          
+          # Configure permissions
           sudo usermod -aG docker $USER
           newgrp docker
 

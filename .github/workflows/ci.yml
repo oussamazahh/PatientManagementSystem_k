@@ -35,9 +35,10 @@ jobs:
 
       - name: ⚙️ Install k3d and kubectl
         run: |
-          curl -sL https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
-          curl -LOs "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+          # curl -sL https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+          # curl -LOs "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          # sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+          make install
 
       - name: 🎯 Create k3d cluster
         run: |
@@ -47,7 +48,7 @@ jobs:
           #   --port "4004:30004@loadbalancer" \
           #   --api-port 6443 \
           #   --kubeconfig-switch-context=true  # Add this
-          make install
+          # make install
           mkdir -p ${HOME}/.kube
           k3d kubeconfig get mycluster > ${HOME}/.kube/config
           chmod 600 ${HOME}/.kube/config

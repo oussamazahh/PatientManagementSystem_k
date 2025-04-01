@@ -45,6 +45,10 @@ jobs:
           sudo cp /etc/rancher/k3s/k3s.yaml ${HOME}/.kube/config
           sudo chown -R $USER ${HOME}/.kube
           echo "export KUBECONFIG=${HOME}/.kube/config" >> ${HOME}/.bashrc
+          sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+          k3d cluster create $(CLUSTER_NAME) -p "4004:30004@loadbalancer" --wait
+          mkdir -p $$(dirname $(KUBECONFIG)) && sudo cp /etc/rancher/k3s/k3s.yaml $(KUBECONFIG) && sudo chown $$USER $(KUBECONFIG)
+          echo "\n${GREEN}✅ Cluster ready! Verify with: kubectl cluster-info${NC}"
           kubectl cluster-info
           kubectl get nodes
 

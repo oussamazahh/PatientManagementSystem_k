@@ -25,12 +25,6 @@ spec:
         - name: SPRING_DATASOURCE_URL
           value: "jdbc:postgresql://auth-db-service:5432/authdb"
         - name: SPRING_DATASOURCE_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: auth-db-secret
-              key: username
+          value: admin
         - name: SPRING_DATASOURCE_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: auth-db-secret
-              key: password
+          value: admin

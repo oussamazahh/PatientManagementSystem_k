@@ -64,8 +64,6 @@ jobs:
 
       - name: ⏳ Wait for services to be ready
         run: |
-          # kubectl wait --for=condition=available --timeout=300s deployment/auth-service
-          # kubectl wait --for=condition=available --timeout=300s deployment/patient-service
           # kubectl wait --for=condition=available --timeout=300s deployment/api-gateway
           sleep 40  # Additional buffer for ingress controller
           sudo make status

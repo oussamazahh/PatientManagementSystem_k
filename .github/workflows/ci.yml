@@ -71,21 +71,21 @@ jobs:
           kubectl get events --sort-by=.metadata.creationTimestamp
           kubectl describe pods -l app=api-gateway
           kubectl logs -l app=api-gateway --all-containers=true
-          
+
       - name: ⏳ Wait for services to be ready
         run: |
           export KUBECONFIG=${HOME}/.kube/config
+          sleep 20
+          # # Wait for critical dependencies first
+          # kubectl wait --for=condition=available --timeout=400s deployment/auth-service
+          # kubectl wait --for=condition=available --timeout=400s deployment/patient-service
           
-          # Wait for critical dependencies first
-          kubectl wait --for=condition=available --timeout=400s deployment/auth-service
-          kubectl wait --for=condition=available --timeout=400s deployment/patient-service
+          # # Debug API Gateway if needed
+          # kubectl describe deployment api-gateway
+          # kubectl logs -l app=api-gateway --all-containers=true --prefix=true --tail=50
           
-          # Debug API Gateway if needed
-          kubectl describe deployment api-gateway
-          kubectl logs -l app=api-gateway --all-containers=true --prefix=true --tail=50
-          
-          # Wait for API Gateway with longer timeout
-          kubectl wait --for=condition=available --timeout=400s deployment/api-gateway
+          # # Wait for API Gateway with longer timeout
+          # kubectl wait --for=condition=available --timeout=400s deployment/api-gateway
           
           # Show detailed status
           make status

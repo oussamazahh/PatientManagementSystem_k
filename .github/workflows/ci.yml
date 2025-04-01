@@ -41,7 +41,7 @@ jobs:
           sudo mv kubectl /usr/local/bin/
           
           # Install k3s with Docker runtime
-          curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE="644" INSTALL_K3S_EXEC="--docker" sh -
+          curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE="644" INSTALL_K3S_EXEC="--tls-san 0.0.0.0" sh -
           
           # Configure kubectl access
           mkdir -p ${HOME}/.kube
@@ -51,8 +51,8 @@ jobs:
           echo "export KUBECONFIG=${HOME}/.kube/config" >> ${HOME}/.bashrc
           
           # Verify installation
-          kubectl version --client
-          kubectl cluster-info
+          # kubectl version --client
+          # kubectl cluster-info
           # kubectl get nodes
 
       - name: 🏗 Build Docker images

@@ -33,27 +33,19 @@ jobs:
           sudo usermod -aG docker $USER
           newgrp docker
 
-      - name: ⚙️ Install k3d and kubectl
+      - name: ⚙️ Install k3s and dependencies
         run: |
-          # curl -sL https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
-          # curl -LOs "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          # sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-          make install
-
-      - name: 🎯 Create k3d cluster
-        run: |
-          # k3d cluster create mycluster \
-          #   --wait \
-          #   --kubeconfig-update-default=false \
-          #   --port "4004:30004@loadbalancer" \
-          #   --api-port 6443 \
-          #   --kubeconfig-switch-context=true  # Add this
-          # make install
-          mkdir -p ${HOME}/.kube
-          k3d kubeconfig get mycluster > ${HOME}/.kube/config
-          chmod 600 ${HOME}/.kube/config
+          # Remove conflicting components
+          sudo apt-get remove -y k3d
           
-          # Verify connectivity
+          # Install k3s with Docker runtime
+          curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE="644" INSTALL_K3S_EXEC="--docker" sh -
+          
+          # Configure kubectl access
+          mkdir -p ${HOME}/.kube
+          sudo cp /etc/rancher/k3s/k3s.yaml ${HOME}/.kube/config
+          sudo chown -R $USER ${HOME}/.kube
+          echo "export KUBECONFIG=${HOME}/.kube/config" >> ${HOME}/.bashrc
           kubectl cluster-info
           kubectl get nodes
 

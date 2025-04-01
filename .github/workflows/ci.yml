@@ -55,6 +55,7 @@ jobs:
 
       - name: ⏳ Wait for services
         run: |
+          docker image ls
           sleep 5
           make status
           # kubectl wait --for=condition=available --timeout=300s deployment/api-gateway

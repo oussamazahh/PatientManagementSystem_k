@@ -6,99 +6,67 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  CLUSTER_NAME: mycluster
+  KUBECONFIG: ${{ github.workspace }}/.kube/config
+
 jobs:
   ci-cd:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: 🛎 Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: 🐳 Install Docker
+      - name: 🐳 Setup Docker
         run: |
-          # Remove conflicting packages
-          sudo apt-get remove -y containerd docker docker-engine docker.io
-          
-          # Add Docker's official GPG key
-          sudo mkdir -p /etc/apt/keyrings
+          sudo apt-get update
+          sudo apt-get install -y ca-certificates curl gnupg
+          sudo install -m 0755 -d /etc/apt/keyrings
           curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-          
-          # Set up the repository
+          sudo chmod a+r /etc/apt/keyrings/docker.gpg
           echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-          
-          # Update and install
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-          
-          # Configure permissions
+          sudo apt-get update
+          sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
           sudo usermod -aG docker $USER
           newgrp docker
 
-      - name: ⚙️ Install k3s and dependencies
+      - name: ⚙️ Install cluster tools
         run: |
-          # Install kubectl first
+          curl -sL https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
           curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          chmod +x kubectl
-          sudo mv kubectl /usr/local/bin/
-          
-          # Install k3s with Docker runtime
-          curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE="644" INSTALL_K3S_EXEC="--tls-san 0.0.0.0" sh -
-          
-          # Configure kubectl access
-          mkdir -p ${HOME}/.kube
-          sudo cp /etc/rancher/k3s/k3s.yaml ${HOME}/.kube/config
-          sudo chown -R $USER ${HOME}/.kube
-          sed -i 's/127.0.0.1/0.0.0.0/g' ${HOME}/.kube/config
-          echo "export KUBECONFIG=${HOME}/.kube/config" >> ${HOME}/.bashrc
-          
-          # Verify installation
-          # kubectl version --client
-          # kubectl cluster-info
-          # kubectl get nodes
+          sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 
-      - name: 🏗 Build Docker images
+      - name: 🛠️ Create cluster
+        run: |
+          k3d cluster create ${{ env.CLUSTER_NAME }} -p "4004:30004@loadbalancer" --wait
+          mkdir -p ${{ env.KUBECONFIG%/*}}
+          sudo cp /etc/rancher/k3s/k3s.yaml "${{ env.KUBECONFIG }}"
+          sudo chown $USER "${{ env.KUBECONFIG }}"
+          kubectl cluster-info
+
+      - name: 🏗 Build images
         run: make build
 
-      - name: 🚀 Deploy to cluster
-        run: |
-          make deploy
+      - name: 🚀 Deploy system
+        run: make deploy
 
-
-      - name: 🔍 Troubleshoot Cluster
-        if: failure()
+      - name: ⏳ Wait for services
         run: |
-          kubectl get events --sort-by=.metadata.creationTimestamp
-          kubectl describe pods -l app=api-gateway
-          kubectl logs -l app=api-gateway --all-containers=true
+          kubectl wait --for=condition=available --timeout=300s deployment/api-gateway
+          kubectl wait --for=condition=available --timeout=300s deployment/auth-service
+          kubectl wait --for=condition=available --timeout=300s deployment/patient-service
+          sleep 20  # Wait for ingress propagation
 
-      - name: ⏳ Wait for services to be ready
+      - name: 🧪 Run tests
         run: |
-          export KUBECONFIG=${HOME}/.kube/config
-          sleep 40
-          # # Wait for critical dependencies first
-          # kubectl wait --for=condition=available --timeout=400s deployment/auth-service
-          # kubectl wait --for=condition=available --timeout=400s deployment/patient-service
-          
-          # # Debug API Gateway if needed
-          # kubectl describe deployment api-gateway
-          # kubectl logs -l app=api-gateway --all-containers=true --prefix=true --tail=50
-          
-          # # Wait for API Gateway with longer timeout
-          # kubectl wait --for=condition=available --timeout=400s deployment/api-gateway
-          
-          # Show detailed status
-          make status
-          kubectl logs -l app=auth-service --all-containers=true
-          kubectl logs -l app=patient-service --all-containers=true
-          kubectl describe pods -l app=auth-service
-          kubectl describe pods -l app=patient-service
+          curl --retry 5 --retry-delay 10 --retry-connrefused -sSf http://localhost:30004/api-docs/auth | grep -q "openapi" || (echo "❌ Auth Service API Docs Check Failed"; exit 1)
+          curl --retry 5 --retry-delay 10 --retry-connrefused -sSf http://localhost:30004/api-docs/patients | grep -q "openapi" || (echo "❌ Patient Service API Docs Check Failed"; exit 1)
 
-      - name: 🧪 Test API endpoints
-        run: |
-          echo "Testing API documentation endpoints..."
-          # Test auth-service API docs
-          curl  http://localhost:30004/api-docs/auth | grep -q "openapi" || (echo "❌ Auth Service API Docs Check Failed"; exit 1)
-          echo "✅ Auth Service API Docs Verified"
-          
-          # Test patient-service API docs
-          curl  http://localhost:30004/api-docs/patients | grep -q "openapi" || (echo "❌ Patient Service API Docs Check Failed"; exit 1)
-          echo "✅ Patient Service API Docs Verified"
+      - name: 📊 Final status
+        if: always()
+        run: make status
+
+      - name: 🧹 Cleanup
+        if: always()
+        run: make down

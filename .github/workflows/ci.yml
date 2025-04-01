@@ -35,23 +35,23 @@ jobs:
 
       - name: ⚙️ Install k3s and dependencies
         run: |
-          # Remove conflicting components
+          # Install kubectl first
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
           
           # Install k3s with Docker runtime
           curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE="644" INSTALL_K3S_EXEC="--docker" sh -
           
-          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          chmod +x kubectl
-          sudo mv kubectl /usr/local/bin/
-    
           # Configure kubectl access
           mkdir -p ${HOME}/.kube
           sudo cp /etc/rancher/k3s/k3s.yaml ${HOME}/.kube/config
           sudo chown -R $USER ${HOME}/.kube
           sed -i 's/127.0.0.1/0.0.0.0/g' ${HOME}/.kube/config
           echo "export KUBECONFIG=${HOME}/.kube/config" >> ${HOME}/.bashrc
-          sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-
+          
+          # Verify installation
+          kubectl version --client
           k3d cluster create mycluster -p "4004:30004@loadbalancer" --wait
           kubectl cluster-info
           kubectl get nodes

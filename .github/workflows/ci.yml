@@ -36,7 +36,6 @@ jobs:
       - name: ⚙️ Install k3s and dependencies
         run: |
           # Remove conflicting components
-          # sudo apt-get remove -y k3d
           
           # Install k3s with Docker runtime
           curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE="644" INSTALL_K3S_EXEC="--docker" sh -
@@ -82,6 +81,10 @@ jobs:
           
           # Show detailed status
           make status
+          kubectl logs -l app=auth-service --all-containers=true
+          kubectl logs -l app=patient-service --all-containers=true
+          kubectl describe pods -l app=auth-service
+          kubectl describe pods -l app=patient-service
 
       - name: 🧪 Test API endpoints
         run: |

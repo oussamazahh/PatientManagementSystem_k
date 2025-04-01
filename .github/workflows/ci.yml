@@ -51,9 +51,7 @@ jobs:
           echo "export KUBECONFIG=${HOME}/.kube/config" >> ${HOME}/.bashrc
           
           # Verify installation
-          curl -sL https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | sh
           kubectl version --client
-          k3d cluster create mycluster -p "4004:30004@loadbalancer" --wait
           kubectl cluster-info
           kubectl get nodes
 

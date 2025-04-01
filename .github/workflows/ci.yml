@@ -39,11 +39,20 @@ jobs:
 
       - name: 🛠️ Create cluster
         run: |
-          k3d cluster create ${{ env.CLUSTER_NAME }} -p "4004:30004@loadbalancer" --wait
-          mkdir -p ${{ env.KUBECONFIG%/*}}
-          sudo cp /etc/rancher/k3s/k3s.yaml "${{ env.KUBECONFIG }}"
-          sudo chown $USER "${{ env.KUBECONFIG }}"
+          # Create cluster with explicit kubeconfig
+          k3d cluster create ${{ env.CLUSTER_NAME }} \
+            -p "4004:30004@loadbalancer" \
+            --wait \
+            --kubeconfig-update-default=false
+          
+          # Configure kubeconfig
+          mkdir -p "${HOME}/.kube"
+          k3d kubeconfig get ${{ env.CLUSTER_NAME }} > "${HOME}/.kube/config"
+          chmod 600 "${HOME}/.kube/config"
+          
+          # Verify cluster access
           kubectl cluster-info
+          kubectl get nodes
 
       - name: 🏗 Build images
         run: make build

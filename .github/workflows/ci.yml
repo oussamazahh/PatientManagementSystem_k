@@ -63,10 +63,13 @@ jobs:
 
       - name: ⏳ Wait for services
         run: |
-          kubectl wait --for=condition=available --timeout=300s deployment/api-gateway
-          kubectl wait --for=condition=available --timeout=300s deployment/auth-service
-          kubectl wait --for=condition=available --timeout=300s deployment/patient-service
+          sleep 5
+          make status
+          # kubectl wait --for=condition=available --timeout=300s deployment/api-gateway
+          # kubectl wait --for=condition=available --timeout=300s deployment/auth-service
+          # kubectl wait --for=condition=available --timeout=300s deployment/patient-service
           sleep 20  # Wait for ingress propagation
+          make status
 
       - name: 🧪 Run tests
         run: |

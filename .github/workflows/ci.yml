@@ -39,19 +39,38 @@ jobs:
 
       - name: 🛠️ Create cluster
         run: |
-          k3d cluster create mycluster -p "4004:30004@loadbalancer" --wait
-          mkdir -p "${HOME}/.kube"
-          k3d kubeconfig get mycluster > "${HOME}/.kube/config"
-          sudo chown $(id -un) "${HOME}/.kube"
-          chmod 600 "${HOME}/.kube/config"
-          sed -i 's/127.0.0.1/host.docker.internal/g' "${HOME}/.kube/config"
-          kubectl cluster-info
+          k3d cluster create ${{ env.CLUSTER_NAME }} \
+            -p "4004:30004@loadbalancer" \
+            --wait \
+            --volume="/var/run/docker.sock:/var/run/docker.sock"  # Add Docker socket mount
 
-      - name: 🏗 Build images
-        run: make build
+      - name: 🏗 Build and import images
+        run: |
+          # Build images using host Docker daemon
+          make build
+          
+          # Connect k3d to host Docker registry
+          k3d registry connect mycluster-registry
+          
+          # Push images to cluster registry
+          for service in auth-service patient-service api-gateway billing-service analytics-service; do
+            docker tag $service:latest k3d-mycluster-registry:5000/$service:latest
+            docker push k3d-mycluster-registry:5000/$service:latest
+          done
 
       - name: 🚀 Deploy system
-        run: make deploy
+        run: |
+          # Update deployments to use cluster registry
+          sed -i 's/image: \(.*\):latest/image: k3d-mycluster-registry:5000\/\1:latest/g' k3s/*/*.yaml
+          make deploy
+
+      - name: 🔍 Verify images
+        run: |
+          # Check node images
+          kubectl get nodes -o name | xargs -I {} kubectl debug {} -it --image=busybox -- sh -c "ctr -n k8s.io images list"
+
+          # Check deployment specs
+          kubectl get deployments -o jsonpath='{range .items[*]}{.metadata.name}{": "}{.spec.template.spec.containers[*].image}{"\n"}{end}'
 
       - name: ⏳ Wait for services
         run: |

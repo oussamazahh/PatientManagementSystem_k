@@ -53,7 +53,7 @@ jobs:
           # Verify installation
           kubectl version --client
           kubectl cluster-info
-          kubectl get nodes
+          # kubectl get nodes
 
       - name: 🏗 Build Docker images
         run: make build

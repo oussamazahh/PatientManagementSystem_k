@@ -23,7 +23,7 @@ help: ## 📖 Show this help menu
 
 install: ## 🌐 Install k3s cluster and dependencies
 	@echo "\n${BLUE}🚀 Installing development environment...${NC}"
-	@sudo apt-get update -qq && sudo apt-get install -y -qq curl docker.io
+	# @sudo apt-get update -qq && sudo apt-get install -y -qq curl docker.io
 	@curl -sL https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
 	@curl -LOs "https://dl.k8s.io/release/$$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
 	@sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl

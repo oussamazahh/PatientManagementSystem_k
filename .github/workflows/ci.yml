@@ -36,7 +36,7 @@ jobs:
       - name: ⚙️ Install k3s and dependencies
         run: |
           # Remove conflicting components
-          sudo apt-get remove -y k3d
+          # sudo apt-get remove -y k3d
           
           # Install k3s with Docker runtime
           curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE="644" INSTALL_K3S_EXEC="--docker" sh -

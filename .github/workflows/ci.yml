@@ -61,7 +61,6 @@ jobs:
       - name: 🚀 Deploy to cluster
         run: |
           make deploy
-          kubectl get pods --watch-all &
 
 
       - name: 🔍 Troubleshoot Cluster

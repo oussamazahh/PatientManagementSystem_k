@@ -36,20 +36,16 @@ jobs:
           curl -sL https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
           curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
           sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-          k3d cluster create mycluster -p "4004:30004@loadbalancer" --wait
 
       - name: 🛠️ Create cluster
         run: |
-
-          # Get and modify kubeconfig
+          k3d cluster create mycluster -p "4004:30004@loadbalancer" --wait
           mkdir -p "${HOME}/.kube"
           k3d kubeconfig get mycluster > "${HOME}/.kube/config"
-          sudo chown $$USER "${HOME}/.kube"
+          sudo chown $(id -un) "${HOME}/.kube"
           chmod 600 "${HOME}/.kube/config"
-          
-          # Verify cluster access
+          sed -i 's/127.0.0.1/host.docker.internal/g' "${HOME}/.kube/config"
           kubectl cluster-info
-          kubectl get nodes -o wide
 
       - name: 🏗 Build images
         run: make build

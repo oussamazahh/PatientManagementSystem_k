@@ -86,7 +86,7 @@ clean: ## 🧹 Clean up all cluster resources
 
 status: ## 📊 Show cluster status
 	@echo "\n${BLUE}📡 Cluster Status:${NC}"
-	@kubectl get pods -o wide
+	# @kubectl get pods -o wide
 	@echo "\n${BLUE}🔌 Services:${NC}"
 	@kubectl get svc -o wide
 	@echo "\n${BLUE}💾 Persistent Volumes:${NC}"

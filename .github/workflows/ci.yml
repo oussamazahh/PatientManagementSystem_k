@@ -43,13 +43,13 @@ jobs:
 
           # Get and modify kubeconfig
           mkdir -p "${HOME}/.kube"
-          sudo cp /etc/rancher/k3s/k3s.yaml "${HOME}/.kube"
+          k3d kubeconfig get mycluster > "${HOME}/.kube/config"
           sudo chown $$USER "${HOME}/.kube"
           chmod 600 "${HOME}/.kube/config"
           
           # Verify cluster access
-          # kubectl cluster-info
-          # kubectl get nodes -o wide
+          kubectl cluster-info
+          kubectl get nodes -o wide
 
       - name: 🏗 Build images
         run: make build

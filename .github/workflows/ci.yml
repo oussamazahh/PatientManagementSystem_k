@@ -60,22 +60,35 @@ jobs:
         run: make build
 
       - name: 🚀 Deploy to cluster
-        run: make deploy
+        run: |
+          make deploy
+          kubectl get pods --watch-all &
 
+
+      - name: 🔍 Troubleshoot Cluster
+        if: failure()
+        run: |
+          kubectl get events --sort-by=.metadata.creationTimestamp
+          kubectl describe pods -l app=api-gateway
+          kubectl logs -l app=api-gateway --all-containers=true
+          
       - name: ⏳ Wait for services to be ready
         run: |
-          # Properly configure kubectl access
           export KUBECONFIG=${HOME}/.kube/config
           
-          # Wait for critical deployments
-          kubectl wait --for=condition=available --timeout=300s deployment/api-gateway
-          kubectl wait --for=condition=available --timeout=300s deployment/auth-service
+          # Wait for critical dependencies first
+          kubectl wait --for=condition=available --timeout=400s deployment/auth-service
+          kubectl wait --for=condition=available --timeout=400s deployment/patient-service
           
-          # Show cluster status (WITHOUT SUDO)
+          # Debug API Gateway if needed
+          kubectl describe deployment api-gateway
+          kubectl logs -l app=api-gateway --all-containers=true --prefix=true --tail=50
+          
+          # Wait for API Gateway with longer timeout
+          kubectl wait --for=condition=available --timeout=400s deployment/api-gateway
+          
+          # Show detailed status
           make status
-          
-          # Additional buffer time
-          sleep 20
 
       - name: 🧪 Test API endpoints
         run: |

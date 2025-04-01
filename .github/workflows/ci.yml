@@ -43,16 +43,17 @@ jobs:
           k3d cluster create ${{ env.CLUSTER_NAME }} \
             -p "4004:30004@loadbalancer" \
             --wait \
-            --kubeconfig-update-default=false
-          
-          # Configure kubeconfig
+            --kubeconfig-switch-context=true \
+            --kubeconfig-update-default=true
+
+          # Get and modify kubeconfig
           mkdir -p "${HOME}/.kube"
-          k3d kubeconfig get ${{ env.CLUSTER_NAME }} > "${HOME}/.kube/config"
+          k3d kubeconfig get ${{ env.CLUSTER_NAME }} | sed 's/127.0.0.1/host.docker.internal/g' > "${HOME}/.kube/config"
           chmod 600 "${HOME}/.kube/config"
           
           # Verify cluster access
           kubectl cluster-info
-          kubectl get nodes
+          kubectl get nodes -o wide
 
       - name: 🏗 Build images
         run: make build

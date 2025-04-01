@@ -41,13 +41,13 @@ jobs:
 
       - name: 🎯 Create k3d cluster
         run: |
-          k3d cluster create mycluster \
-            --wait \
-            --kubeconfig-update-default=false \
-            --port "4004:30004@loadbalancer" \
-            --api-port 6443 \
-            --kubeconfig-switch-context=true  # Add this
-
+          # k3d cluster create mycluster \
+          #   --wait \
+          #   --kubeconfig-update-default=false \
+          #   --port "4004:30004@loadbalancer" \
+          #   --api-port 6443 \
+          #   --kubeconfig-switch-context=true  # Add this
+          make install
           mkdir -p ${HOME}/.kube
           k3d kubeconfig get mycluster > ${HOME}/.kube/config
           chmod 600 ${HOME}/.kube/config
@@ -75,7 +75,7 @@ jobs:
       - name: ⏳ Wait for services to be ready
         run: |
           export KUBECONFIG=${HOME}/.kube/config
-          sleep 20
+          sleep 40
           # # Wait for critical dependencies first
           # kubectl wait --for=condition=available --timeout=400s deployment/auth-service
           # kubectl wait --for=condition=available --timeout=400s deployment/patient-service

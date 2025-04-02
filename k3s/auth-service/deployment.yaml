@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
       - name: auth-service
-        image: auth-service:latest
-        imagePullPolicy: Always
+        image: ozahidi22/auth-service:latest
+        # imagePullPolicy: Always
         env:
         - name: JWT_SECRET
           valueFrom:

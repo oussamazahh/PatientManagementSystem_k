@@ -39,6 +39,9 @@ install: ## 🌐 Install k3s cluster and dependencies
 	@sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 	@k3d cluster create $(CLUSTER_NAME) -p "4004:30004@loadbalancer" --wait || { echo >&2 "Cluster creation failed. Aborting."; exit 1; }
 	@mkdir -p $$(dirname $(KUBECONFIG)) && k3d kubeconfig get $(CLUSTER_NAME) > $(KUBECONFIG) || { echo >&2 "Failed to get kubeconfig. Aborting."; exit 1; }
+	@kubectl config view
+    @kubectl config current-context
+    @kubectl get ns
 	@echo "\n${GREEN}✅ Cluster ready! Verify with: kubectl cluster-info${NC}"
 
 build: ## 🐳 Build all Docker images

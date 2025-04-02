@@ -36,7 +36,13 @@ jobs:
           make install
 
       - name: 🏗 Build images
-        run: make build
+        run: |
+           make build
+           k3d image import analytics-service -c mycluster
+           k3d image import billing-service -c mycluster
+           k3d image import api-gateway -c mycluster
+           k3d image import patient-service -c mycluster
+           k3d image import auth-service -c mycluster
 
       - name: 🚀 Deploy system
         run: make deploy

@@ -20,14 +20,25 @@ help: ## 📖 Show this help menu
 	@echo "\n${BLUE}Available commands:${NC}"
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  ${YELLOW}%-20s${NC} %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
+# install: ## 🌐 Install k3s cluster and dependencies
+# 	@echo "\n${BLUE}🚀 Installing development environment...${NC}"
+# 	@sudo apt-get update -qq && sudo apt-get install -y -qq curl docker.io
+# 	@curl -sL https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+# 	@curl -LOs "https://dl.k8s.io/release/$$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+# 	@sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+# 	@k3d cluster create $(CLUSTER_NAME) -p "4004:30004@loadbalancer" --wait
+# 	@mkdir -p $$(dirname $(KUBECONFIG)) && sudo cp /etc/rancher/k3s/k3s.yaml $(KUBECONFIG) && sudo chown $$USER $(KUBECONFIG)
+# 	@echo "\n${GREEN}✅ Cluster ready! Verify with: kubectl cluster-info${NC}"
+
 install: ## 🌐 Install k3s cluster and dependencies
 	@echo "\n${BLUE}🚀 Installing development environment...${NC}"
-#	@sudo apt-get update -qq && sudo apt-get install -y -qq curl docker.io
+	@command -v docker >/dev/null 2>&1 || { echo >&2 "Docker is required but not installed. Aborting."; exit 1; }
+	@command -v curl >/dev/null 2>&1 || sudo apt-get install -y curl
 	@curl -sL https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
 	@curl -LOs "https://dl.k8s.io/release/$$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
 	@sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-	@k3d cluster create $(CLUSTER_NAME) -p "4004:30004@loadbalancer" --wait
-	@mkdir -p $$(dirname $(KUBECONFIG)) && sudo cp /etc/rancher/k3s/k3s.yaml $(KUBECONFIG) && sudo chown $$USER $(KUBECONFIG)
+	@k3d cluster create $(CLUSTER_NAME) -p "4004:30004@loadbalancer" --wait || { echo >&2 "Cluster creation failed. Aborting."; exit 1; }
+	@mkdir -p $$(dirname $(KUBECONFIG)) && k3d kubeconfig get $(CLUSTER_NAME) > $(KUBECONFIG) || { echo >&2 "Failed to get kubeconfig. Aborting."; exit 1; }
 	@echo "\n${GREEN}✅ Cluster ready! Verify with: kubectl cluster-info${NC}"
 
 build: ## 🐳 Build all Docker images

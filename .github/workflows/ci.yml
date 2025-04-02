@@ -41,6 +41,8 @@ jobs:
 
       - name: 🚀 Deploy system
         run: |
+          docker ps 
+          docker image ls
           make deploy
           sleep 10
           make status

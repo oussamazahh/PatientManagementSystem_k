@@ -38,33 +38,23 @@ jobs:
       - name: 🏗 Build images
         run: |
           make build
-          for service in auth-service patient-service api-gateway billing-service analytics-service; do
-            k3d image import $service -c $CLUSTER_NAME
-          done
+          make deploy
+          sleep 10
+          make status
+
 
       - name: 🚀 Deploy system
         run: |
-           make deploy
-           kubectl cluster-info
-           kubectl get nodes
-      - name: Verify deployments
+           echo "test"
+  
+      - name: ⏳ Wait for services
         run: |
-          kubectl rollout status deployment/auth-db --timeout=180s
-          kubectl rollout status deployment/patient-db --timeout=180s
-          kubectl rollout status deployment/kafka --timeout=180s
-          for service in auth-service patient-service api-gateway billing-service analytics-service; do
-            kubectl rollout status deployment/$service --timeout=180s
-          done
           make status
+          sleep 20
+          make check
 
-      - name: 🧪 Run smoke tests
-        run: |
-          kubectl port-forward svc/api-gateway 30004:4004 &
-          sleep 10  # Wait for port-forward
-          
-          # Test API endpoints
-          curl --retry 5 --retry-delay 5 --retry-connrefused -sSf http://localhost:30004/api-docs/auth | grep -q "openapi" || (echo "❌ Auth Service API Docs Check Failed"; exit 1)
-          curl --retry 5 --retry-delay 5 --retry-connrefused -sSf http://localhost:30004/api-docs/patients | grep -q "openapi" || (echo "❌ Patient Service API Docs Check Failed"; exit 1)
+      - name: 🧪 Run tests
+        run: make test
 
       - name: 📊 Final status
         if: always()

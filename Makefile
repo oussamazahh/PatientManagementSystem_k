@@ -130,3 +130,33 @@ restart: ## 🔄 Restart all deployments
 		echo "${GREEN}🔄 Restarting $$deployment...${NC}"; \
 		kubectl rollout restart $$deployment; \
 	done
+
+
+
+.PHONY: check test
+
+check: ## 🔍 Verify cluster health and configuration
+	@echo "\n${BLUE}🔍 Running cluster checks...${NC}"
+	@echo "${YELLOW}✅ Validating Kubernetes manifests...${NC}"
+	@make lint
+	@echo "\n${YELLOW}🔎 Checking deployment status...${NC}"
+	@kubectl get deployments -o wide
+	@echo "\n${YELLOW}📦 Checking pod readiness...${NC}"
+	@kubectl get pods -o jsonpath='{range .items[*]}{.metadata.name}: {.status.phase}{"\n"}{end}'
+	@if kubectl get pods -o jsonpath='{.items[*].status.containerStatuses[*].ready}' | grep -q false; then \
+		echo "${RED}❌ Some containers are not ready${NC}"; \
+		exit 1; \
+	else \
+		echo "${GREEN}✅ All containers ready${NC}"; \
+	fi
+
+test: ## 🧪 Run integration tests
+	@echo "\n${BLUE}🧪 Running tests...${NC}"
+	@echo "${YELLOW}🔌 Starting port-forward...${NC}"
+	@kubectl port-forward svc/api-gateway 30004:4004 > /dev/null 2>&1 &
+	@sleep 5
+	@echo "${YELLOW}🌐 Testing API endpoints...${NC}"
+	@curl --retry 5 --retry-delay 2 --retry-connrefused -sSf http://localhost:30004/api-docs/auth | grep -q "openapi" || (echo "${RED}❌ Auth Service API Docs Check Failed${NC}"; exit 1)
+	@curl --retry 5 --retry-delay 2 --retry-connrefused -sSf http://localhost:30004/api-docs/patients | grep -q "openapi" || (echo "${RED}❌ Patient Service API Docs Check Failed${NC}"; exit 1)
+	@pkill -f "kubectl port-forward" || true
+	@echo "\n${GREEN}✅ All tests passed!${NC}"

@@ -44,9 +44,9 @@ jobs:
 
       - name: 🚀 Deploy system
         run: |
+           make deploy
            kubectl cluster-info
            kubectl get nodes
-           make deploy
       - name: Verify deployments
         run: |
           kubectl rollout status deployment/auth-db --timeout=180s

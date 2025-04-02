@@ -38,15 +38,15 @@ jobs:
       - name: 🏗 Build images
         run: |
           make build
-          make deploy
-          sleep 10
-          make status
-
 
       - name: 🚀 Deploy system
         run: |
-           echo "test"
-  
+          make deploy
+          sleep 10
+          make status
+          sleep 10
+          make status
+
       - name: ⏳ Wait for services
         run: |
           make status

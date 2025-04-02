@@ -44,11 +44,20 @@ jobs:
            k3d image import patient-service -c mycluster
            k3d image import auth-service -c mycluster
 
+      - name: Verify image imports
+        run: |
+           # Try to run a pod with the imported image
+           kubectl run test-auth --image=auth-service --command -- sleep infinity
+           kubectl wait --for=condition=Ready pod/test-auth --timeout=20s && echo "Image exists in cluster"
+           kubectl delete pod test-auth
+
       - name: 🚀 Deploy system
         run: make deploy
 
       - name: ⏳ Wait for services
         run: |
+          kubectl get nodes -o wide
+          kubectl debug node/k3d-mycluster-server-0 -it --image=busybox -- sh -c "crictl images || echo 'Cannot list images in node'"
           k3d image ls
           docker image ls
           sleep 5
@@ -58,6 +67,9 @@ jobs:
           # kubectl wait --for=condition=available --timeout=300s deployment/patient-service
           sleep 20  # Wait for ingress propagation
           make status
+        env:
+          CLUSTER_NAME: mycluster
+          KUBECONFIG: /home/runner/work/PatientManagementSystem_k/PatientManagementSystem_k/.kube/config
 
       - name: 🧪 Run tests
         run: |

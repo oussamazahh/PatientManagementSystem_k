@@ -28,71 +28,44 @@ jobs:
           echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
           sudo apt-get update
           sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-          sudo usermod -aG docker $USER
-          # No newgrp in CI environment
           sudo chmod 666 /var/run/docker.sock
 
       - name: ⚙️ Install cluster tools
         run: |
           sudo apt-get install -y curl
-          curl -sL https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
-          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+          make install
 
-      - name: 🏗️ Create cluster
-        run: |
-          k3d cluster create $CLUSTER_NAME \
-            -p "30004:30004@loadbalancer" \
-            --wait
-          mkdir -p $(dirname $KUBECONFIG)
-          k3d kubeconfig get $CLUSTER_NAME > $KUBECONFIG
-          kubectl cluster-info
-
-      - name: 🔨 Build images
+      - name: 🏗 Build images
         run: |
           make build
           for service in auth-service patient-service api-gateway billing-service analytics-service; do
             k3d image import $service -c $CLUSTER_NAME
           done
 
-      - name: ✅ Verify images
-        run: |
-          # Check images in cluster nodes
-          kubectl get nodes
-          for service in auth-service patient-service api-gateway billing-service analytics-service; do
-            echo "Testing image: $service"
-            kubectl run test-$service --image=$service --command -- sleep 5 || true
-            kubectl wait --for=condition=Ready pod/test-$service --timeout=20s && \
-              echo "✅ Image $service verified" || \
-              echo "⚠️ Could not verify $service"
-            kubectl delete pod test-$service --ignore-not-found
-          done
-
       - name: 🚀 Deploy system
         run: |
           make deploy
-          # Set image pull policy to Never for local development
+          # Set image pull policy to Never for local images
           for service in auth-service patient-service api-gateway billing-service analytics-service; do
             kubectl patch deployment $service -p '{"spec":{"template":{"spec":{"containers":[{"name":"'$service'","imagePullPolicy":"Never"}]}}}}'
           done
-          kubectl rollout restart deployment auth-service patient-service api-gateway billing-service analytics-service
 
       - name: ⏳ Wait for services
         run: |
-          # Wait for deployments
+          kubectl rollout status deployment/auth-db --timeout=180s
+          kubectl rollout status deployment/patient-db --timeout=180s
+          kubectl rollout status deployment/kafka --timeout=180s
           for service in auth-service patient-service api-gateway billing-service analytics-service; do
             kubectl rollout status deployment/$service --timeout=180s
           done
-          
-          # Final status check
           make status
 
-      - name: 🧪 Run tests
+      - name: 🧪 Run smoke tests
         run: |
-          echo "Testing API endpoints..."
           kubectl port-forward svc/api-gateway 30004:4004 &
           sleep 10  # Wait for port-forward
           
+          # Test API endpoints
           curl --retry 5 --retry-delay 5 --retry-connrefused -sSf http://localhost:30004/api-docs/auth | grep -q "openapi" || (echo "❌ Auth Service API Docs Check Failed"; exit 1)
           curl --retry 5 --retry-delay 5 --retry-connrefused -sSf http://localhost:30004/api-docs/patients | grep -q "openapi" || (echo "❌ Patient Service API Docs Check Failed"; exit 1)
 
@@ -103,5 +76,6 @@ jobs:
       - name: 🧹 Cleanup
         if: always()
         run: |
+          make down
           k3d cluster delete $CLUSTER_NAME
           docker system prune -af

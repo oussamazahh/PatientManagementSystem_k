@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
       - name: patient-service
-        image: ozahidi22/patient-service:latest
-        # imagePullPolicy: Always
+        image: patient-service:latest
+        imagePullPolicy: Never
         ports:
         - containerPort: 4000
         env:

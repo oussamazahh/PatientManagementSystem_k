@@ -37,8 +37,7 @@ jobs:
 
       - name: 🏗 Build images
         run: |
-          # make build
-          echo "build"
+          make build
 
       - name: 🚀 Deploy system
         run: |

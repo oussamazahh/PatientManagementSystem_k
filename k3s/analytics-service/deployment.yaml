@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
       - name: analytics-service
-        image: ozahidi22/analytics-service:latest
-        # imagePullPolicy: Always
+        image: analytics-service:latest
+        imagePullPolicy: Never
         ports:
         - containerPort: 4002
         env:

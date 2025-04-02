@@ -46,8 +46,8 @@ jobs:
         run: |
            kubectl cluster-info
            kubectl get nodes
-          make deploy
-        
+           make deploy
+      - name: Verify deployments
         run: |
           kubectl rollout status deployment/auth-db --timeout=180s
           kubectl rollout status deployment/patient-db --timeout=180s

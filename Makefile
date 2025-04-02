@@ -156,7 +156,7 @@ test: ## 🧪 Run integration tests
 	@kubectl port-forward svc/api-gateway 30004:4004 > /dev/null 2>&1 &
 	@sleep 5
 	@echo "${YELLOW}🌐 Testing API endpoints...${NC}"
-	@curl --retry 5 --retry-delay 2 --retry-connrefused -sSf http://localhost:30004/api-docs/auth | grep -q "openapi" || (echo "${RED}❌ Auth Service API Docs Check Failed${NC}"; exit 1)
-	@curl --retry 5 --retry-delay 2 --retry-connrefused -sSf http://localhost:30004/api-docs/patients | grep -q "openapi" || (echo "${RED}❌ Patient Service API Docs Check Failed${NC}"; exit 1)
-	@pkill -f "kubectl port-forward" || true
+	curl --retry 5 --retry-delay 2 --retry-connrefused -sSf http://localhost:30004/api-docs/auth | grep -q "openapi" || (echo "${RED}❌ Auth Service API Docs Check Failed${NC}"; exit 1)
+	curl --retry 5 --retry-delay 2 --retry-connrefused -sSf http://localhost:30004/api-docs/patients | grep -q "openapi" || (echo "${RED}❌ Patient Service API Docs Check Failed${NC}"; exit 1)
+	# @pkill -f "kubectl port-forward" || true
 	@echo "\n${GREEN}✅ All tests passed!${NC}"

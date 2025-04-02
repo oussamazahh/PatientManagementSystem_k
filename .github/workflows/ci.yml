@@ -37,7 +37,8 @@ jobs:
 
       - name: 🏗 Build images
         run: |
-          make build
+          # make build
+          echo "images is already pulling from Dockerhub"
 
       - name: 🚀 Deploy system
         run: |

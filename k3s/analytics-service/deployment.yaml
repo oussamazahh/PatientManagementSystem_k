@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: analytics-service
-        image: analytics-service:latest
+        image: ozahidi22/analytics-service:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 4002

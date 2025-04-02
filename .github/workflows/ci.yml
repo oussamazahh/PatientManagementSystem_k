@@ -49,6 +49,7 @@ jobs:
 
       - name: ⏳ Wait for services
         run: |
+          k3d image list -c mycluster
           docker image ls
           sleep 5
           make status

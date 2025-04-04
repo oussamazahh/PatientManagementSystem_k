@@ -1,6 +1,6 @@
 # 🏥 Patient Management System 2.0: Cloud-Native Evolution
 
-[![CI/CD Pipeline](https://github.com/Abdellahbounab/PatientManagementSystem/actions/workflows/ci.yaml/badge.svg)](https://github.com/Abdellahbounab/PatientManagementSystem/actions)
+[![CI/CD Pipeline](https://github.com/oussamazahh/PatientManagementSystem/actions/workflows/ci.yaml/badge.svg)](https://github.com/Abdellahbounab/PatientManagementSystem/actions)
 [![Kubernetes](https://img.shields.io/badge/kubernetes-%23326ce5.svg?logo=kubernetes&logoColor=white)](https://kubernetes.io)
 [![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?logo=docker&logoColor=white)](https://www.docker.com)
 

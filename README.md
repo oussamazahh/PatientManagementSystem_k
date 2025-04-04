@@ -1,81 +1,107 @@
-# **Microservices Project - Patient Management System**
+# 🏥 Patient Management System 2.0: Cloud-Native Evolution
 
-This project is a **microservices-based patient management system** built using **Spring Boot**, leveraging **Kafka, gRPC, Spring Security, and PostgreSQL** for scalability and efficiency. Each service is containerized using **Docker** with configurable environment variables for seamless deployment.
+[![CI/CD Pipeline](https://github.com/Abdellahbounab/PatientManagementSystem/actions/workflows/ci.yaml/badge.svg)](https://github.com/Abdellahbounab/PatientManagementSystem/actions)
+[![Kubernetes](https://img.shields.io/badge/kubernetes-%23326ce5.svg?logo=kubernetes&logoColor=white)](https://kubernetes.io)
+[![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?logo=docker&logoColor=white)](https://www.docker.com)
 
----
-
-## **Project Structure**
-
-### **Microservices Included:**
-- **Patient Service** (REST API + Swagger)
-- **Billing Service** (gRPC + Kafka Producer)
-- **Analytics & Notification Services** (Kafka Consumers)
-- **Auth Service** (Spring Security + JWT + PostgreSQL)
-- **API Gateway** (Spring Cloud Gateway - Reactive)
-- **Kafka** (Event-driven messaging backbone)
-- **PostgreSQL Database** (Persistent storage)
+**Now with Production-Grade Kubernetes Orchestration & CI/CD Automation!**
 
 ---
 
-## **Setup Instructions**
+## 🚀 Key Enhancements (New!)
+- **Kubernetes Cluster Deployment** with k3s
+- **GitHub Actions CI/CD Pipeline** with automated testing
+- **Kubernetes Dashboard** integration with RBAC
+- **Infrastructure as Code** via comprehensive Makefile
+- **Advanced Monitoring** of cluster resources
+- **Production-Ready** service mesh architecture
 
-### **1. Clone the Repository**
-```sh
-git@github.com:Abdellahbounab/PatientManagementSystem.git
-cd microservices-project
+---
+
+## 🛠️ Tech Stack Supercharged
+**Core Services**  
+Spring Boot | gRPC | Kafka | PostgreSQL | Spring Security
+
+**Cloud Native**  
+Kubernetes (k3s) | Docker | GitHub Actions | Helm (Future)
+
+**Observability**  
+Kubernetes Dashboard | Prometheus (Planned) | Grafana (Planned)
+
+---
+
+## 🌐 System Architecture
+![Architecture Diagram](k3s/document/diagram.png)
+
+---
+
+## 🚦 Getting Started
+
+### 📋 Prerequisites
+- Docker 20.10+
+- kubectl 1.28+
+- k3d 5.6.0+
+
+### 🛠️ Installation
+```bash
+# Clone repository
+git clone git@github.com:Abdellahbounab/PatientManagementSystem.git
+cd PatientManagementSystem
+
+# Spin up cluster (Automatic in CI/CD)
+make install && make build && make deploy
+
+# Verify deployment
+make status
 ```
 
-### **2. Set Up Environment Variables**
-Create a **.env** file in the root directory and add the following:
-```ini
-# Auth Service Configuration
-JWT_SECRET=g1brIEgHUckFn02lhSOxQ6wQWvEc9hLn6mmQFb5D7pRAQnj5xrhyyxtKvyjxiDyLbsHirmcPRtEjiZRxYkLpSmt0Sa0GYVML/MPbgRRQ3pE=
+### 🔍 Testing the System
+```bash
+# Run integration tests
+make test
 
-
-# Database Configuration
-POSTGRES_USER=admin
-POSTGRES_PASSWORD=admin
-POSTGRES_DB=patientdb
-```
-
-### **3. Build and Run the Services with Docker**
-Ensure you have **Docker** and **Docker Compose** installed, then run:
-```sh
-docker-compose up --build -d
-```
-
-### **4. Verify Running Containers**
-```sh
-docker ps
-```
-You should see all microservices running.
-
----
-
-## **Accessing the Services**
-- **API Gateway**: `http://localhost:4004`
-
----
-
-
-## **Stopping the Services**
-```sh
-docker-compose down
+# Access services
+API Gateway: http://localhost:4004
+Dashboard: http://localhost:4004/dashboard
 ```
 
 ---
 
-## **Next Steps**
-- Add **Kubernetes Deployment** for scalability 🚀
-- Implement **Observability & Monitoring** (Prometheus + Grafana)
-- Enhance **Resilience** (Circuit Breakers, Retry Mechanism)
+## 🔄 CI/CD Pipeline
+**Automated Workflow Includes:**
+1. Cluster provisioning with k3d
+2. Docker image builds
+3. Kubernetes deployment validation
+4. Integration testing
+5. Real-time status monitoring
 
-Feel free to contribute and enhance this project!
+```mermaid
+graph LR
+A[Code Push] --> B[Cluster Setup]
+B --> C[Build Images]
+C --> D[Deploy to k3s]
+D --> E[Run Tests]
+E --> F[Report Status]
+```
 
 ---
 
-### **🔗 Connect & Discuss!**
-🚀 Have ideas or improvements? Let’s collaborate! 💡
+## 📊 Monitoring & Operations
+**Key Makefile Commands:**
+```bash
+make watch      # Real-time pod monitoring
+make logs       # Aggregate service logs
+make restart    # Zero-downtime deployments
+make lint       # Validate Kubernetes manifests
+```
 
-📩 **Your Contact Info or GitHub Profile**
+---
 
+## 🤝 Contribution Guidelines
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open Pull Request
+
+---

@@ -23,10 +23,10 @@
 Spring Boot | gRPC | Kafka | PostgreSQL | Spring Security
 
 **Cloud Native**  
-Kubernetes (k3s) | Docker | GitHub Actions | Helm (Future)
+Kubernetes (k3s) | Docker | GitHub Actions 
 
 **Observability**  
-Kubernetes Dashboard | Prometheus (Planned) | Grafana (Planned)
+Kubernetes Dashboard
 
 ---
 

@@ -1,5 +1,5 @@
 # 🛠️ Environment Variables
-SERVICES        := auth-service patient-service api-gateway billing-service analytics-service
+SERVICES        := dashboard auth-service patient-service api-gateway billing-service analytics-service
 DATABASES       := databases/auth-db databases/patient-db
 KAFKA          := kafka
 CONFIG_DIR     := k3s
@@ -64,22 +64,25 @@ deploy: ## 🚀 Deploy entire system to Kubernetes
 		--from-literal=password=admin --dry-run=client -o yaml | kubectl apply -f - || true
 	@kubectl create secret generic jwt-secret \
 		--from-literal=secret=$$(openssl rand -base64 512) --dry-run=client -o yaml | kubectl apply -f - || true
-	
+
+	@echo "\n${YELLOW}🔑 Creating Kubernetes Dashboard...${NC}"
 	@echo "\n${YELLOW}🗄️ Deploying databases...${NC}"
 	@for db in $(DATABASES); do \
 		echo "${GREEN}📦 Deploying $$db...${NC}"; \
 		kubectl apply -f $(CONFIG_DIR)/$$db/ || { echo "${RED}❌ Database deployment failed${NC}"; exit 1; }; \
 	done
-	
+	@kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
+	@kubectl -n kubernetes-dashboard patch service kubernetes-dashboard -p '{"spec":{"type":"NodePort"}}'
 	@echo "\n${YELLOW}📮 Deploying Kafka...${NC}"
 	@kubectl apply -f $(CONFIG_DIR)/$(KAFKA)/ || { echo "${RED}❌ Kafka deployment failed${NC}"; exit 1; }
 	
 	@echo "\n${YELLOW}🛠️ Deploying services...${NC}"
 	@for service in $(SERVICES); do \
 		echo "${GREEN}🚀 Deploying $$service...${NC}"; \
-		kubectl apply -f $(CONFIG_DIR)/$$service/ || { echo "${RED}❌ Service deployment failed for $$service${NC}"; exit 1; }; \
+		kubectl apply -f $(CONFIG_DIR)/$$service/  || { echo "${RED}❌ Service deployment failed for $$service${NC}"; exit 1; }; \
 	done
-	@kubectl create -f k3s/ingress.yaml	
+	@kubectl create -f k3s/ingress.yaml
+	@kubectl create token admin-user -n kubernetes-dashboard --duration=24h > k3s/dashboard/token.txt	
 	@echo "\n${GREEN}🏁 Deployment completed successfully!${NC}"
 
 clean: ## 🧹 Clean up all cluster resources
@@ -92,9 +95,10 @@ clean: ## 🧹 Clean up all cluster resources
 		echo "${RED}❌ Removing $$db...${NC}"; \
 		kubectl delete -f $(CONFIG_DIR)/$$db/ --ignore-not-found; \
 	done
+	@kubectl delete -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml --ignore-not-found
 	@kubectl delete -f $(CONFIG_DIR)/$(KAFKA)/ --ignore-not-found
 	@kubectl delete secret auth-db-secret patient-db-secret jwt-secret --ignore-not-found
-	@kubectl delete -f k3s/ingress.yaml
+	@kubectl delete -f k3s/ingress.yaml --ignore-not-found
 	@echo "\n${GREEN}🗑️  Cluster resources removed!${NC}"
 
 status: ## 📊 Show cluster status

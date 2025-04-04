@@ -64,7 +64,8 @@ make test
 
 # Access services
 API Gateway: http://localhost:4004
-Dashboard: http://localhost:4004/dashboard
+Dashboard: http://localhost:30443
+Token of Dashboard: in k3s/dashboard/token.txt
 ```
 
 ---
